@@ -107,7 +107,9 @@
     let paused = true, gameOver = false;
     let stars = parseInt(localStorage.getItem('stars')) || 0;
     let score = 0;
+    let nextBossScore = 500;
     let playerShields = 0, bulletLevel = 0;
+    let gameOverRecorded = false;
     let heartAnim = 0;
     const heartCycle = ['🩷', '❤️', '♥️', '❤️', '🩷'];
     let keys = {}, moveLeft = false, moveRight = false;
@@ -319,6 +321,10 @@ let currentUFO = ufos.find(ufo => ufo.unlocked) || ufos[0];
     function shootEnemyBullet(enemy) {
       const dx = player.position.x - enemy.position.x;
       const dy = player.position.y - enemy.position.y;
+      let angle = Math.atan2(dy, dx);
+      const clamp = Math.PI / 9; // limit to ~20 degrees around downward
+      if (angle > clamp) angle = clamp;
+      if (angle < -clamp) angle = -clamp;
       const angle = Math.atan2(dy, dx);
       const emoji = Math.random() < 0.8 ? '🔸' : '🔶';
       const canvas = document.createElement('canvas');
@@ -511,6 +517,8 @@ let currentUFO = ufos.find(ufo => ufo.unlocked) || ufos[0];
     }
 
     function showGameOver() {
+      if (gameOverRecorded) return;
+      gameOverRecorded = true;
       gameOver = true; paused = true;
       document.getElementById('finalScore').innerText = `Score: ${score} pts`;
       document.getElementById('starsEarned').innerText = `Stars Earned: ${stars} ⭐️`;
@@ -531,6 +539,8 @@ let currentUFO = ufos.find(ufo => ufo.unlocked) || ufos[0];
       player.position.set(0, -8, 0);
       score = 0; lastSpawn = 0;
       gameOver = false; paused = true;
+      gameOverRecorded = false;
+      nextBossScore = 500;
       localStorage.setItem('stars', stars);
       updateShield();
       renderStartMenu();
@@ -623,8 +633,9 @@ let currentUFO = ufos.find(ufo => ufo.unlocked) || ufos[0];
       }
 
       const spawnInterval = Math.max(0.5, 1.5 - score / 10000);
-      if (!bossActive && stars >= 500 && Math.floor(stars / 500) > Math.floor((stars - 1) / 500)) {
+      if (!bossActive && score >= nextBossScore) {
         spawnBoss();
+        nextBossScore += 500;
       } else if (!bossActive && t - lastSpawn > spawnInterval) {
         spawnEnemy();
         lastSpawn = t;
