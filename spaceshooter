@@ -319,7 +319,7 @@ let currentUFO = ufos.find(ufo => ufo.unlocked) || ufos[0];
     function shootEnemyBullet(enemy) {
       const dx = player.position.x - enemy.position.x;
       const dy = player.position.y - enemy.position.y;
-      const angle = Math.atan2(dx, dy);
+      const angle = Math.atan2(dy, dx);
       const emoji = Math.random() < 0.8 ? '🔸' : '🔶';
       const canvas = document.createElement('canvas');
       canvas.width = 32; canvas.height = 32;
